@@ -13,7 +13,9 @@ export default function ProductsPage() {
   const [showForm, setShowForm] = useState(false)
   const [editing, setEditing] = useState(null)
   const [confirming, setConfirming] = useState(null)
-  const [viewMode, setViewMode] = useState('list') // 'list' or 'grid'
+  const [viewMode, setViewMode] = useState('list') 
+  const [deletingId, setDeletingId] = useState(null)
+  const [saving, setSaving] = useState(false)
 
   async function load() {
     const res = await API.get('/products')
@@ -49,21 +51,96 @@ export default function ProductsPage() {
   async function handleSubmitProduct(data) {
     const payload = {
       title: data.name,
-      price: data.price,
+      price: Number(data.price) || 0,
       description: data.description || '',
       image: data.image || 'https://i.pravatar.cc',
-      category: data.category,
+      category: data.category || 'general',
     }
-    if (data.id) await API.put(`/products/${data.id}`, payload)
-    else await API.post('/products', payload)
-    setShowForm(false)
-    load()
+    if (data.id) {
+      const previous = products
+      setSaving(true)
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === data.id
+            ? {
+                ...p,
+                name: payload.title,
+                price: payload.price,
+                description: payload.description,
+                image: payload.image,
+                category: payload.category,
+              }
+            : p
+        )
+      )
+      setShowForm(false)
+      setEditing(null)
+
+      try {
+        await API.put(`/products/${data.id}`, payload)
+      } catch (err) {
+        setProducts(previous)
+        console.error('Update failed', err)
+        alert('Failed to update product')
+      } finally {
+        setSaving(false)
+      }
+    } else {
+      const tempId = `tmp-${Date.now()}`
+      const newProd = {
+        id: tempId,
+        name: payload.title,
+        price: payload.price,
+        description: payload.description,
+        image: payload.image,
+        category: payload.category,
+        stock: 0,
+      }
+      const previous = products
+      setProducts((prev) => [newProd, ...prev])
+      setShowForm(false)
+      setSaving(true)
+      try {
+        const res = await API.post('/products', payload)
+        if (res && res.data && res.data.id) {
+          const serverId = res.data.id
+          setProducts((prev) => prev.map((p) => (p.id === tempId ? { ...p, id: serverId } : p)))
+        }
+      } catch (err) {
+        setProducts(previous)
+        console.error('Create failed', err)
+        alert('Failed to create product')
+      } finally {
+        setSaving(false)
+      }
+    }
   }
 
   async function confirmDelete() {
-    await API.delete(`/products/${confirming.id}`)
-    setConfirming(null)
-    load()
+    if (!confirming) return
+    const id = confirming.id
+    const previous = products
+    setDeletingId(id)
+
+    if (String(id).startsWith('tmp-')) {
+      setProducts((prev) => prev.filter((p) => p.id !== id))
+      setDeletingId(null)
+      setConfirming(null)
+      return
+    }
+
+    setProducts((prev) => prev.filter((p) => p.id !== id))
+
+    try {
+      await API.delete(`/products/${id}`)
+    } catch (err) {
+      setProducts(previous)
+      console.error('Delete failed', err)
+      alert('Failed to delete product. Changes were reverted. See console for details.')
+    } finally {
+      setDeletingId(null)
+      setConfirming(null)
+    }
   }
 
   return (
@@ -89,14 +166,12 @@ export default function ProductsPage() {
             </button>
           </div>
 
-          {/* Analytics Panel */}
           <AnalyticsPanel products={products} />
         </div>
 
-        {/* Search and Filter Bar */}
+  
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-end">
-            {/* Search Input */}
             <div className="flex-1">
               <label className="block text-sm font-semibold text-gray-700 mb-2">Search Products</label>
               <div className="relative">
@@ -110,7 +185,6 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* Category Filter */}
             <div className="w-full lg:w-48">
               <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
               <div className="relative">
@@ -128,7 +202,6 @@ export default function ProductsPage() {
               </div>
             </div>
 
-            {/* View Mode Toggle */}
             <div className="flex gap-2">
               <button
                 onClick={() => setViewMode('list')}
@@ -156,7 +229,6 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* Products Display */}
         {viewMode === 'list' ? (
           <div className="space-y-4">
             {filtered().length > 0 ? (
@@ -192,17 +264,24 @@ export default function ProductsPage() {
                         setEditing(p)
                         setShowForm(true)
                       }}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition font-medium"
+                      className="flex items-center gap-2"
+                      title="Edit Product"
                     >
-                      <Edit className="w-4 h-4" />
-                      <span className="hidden sm:inline">Edit</span>
+                      <span className="p-2.5 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition inline-flex items-center justify-center">
+                        <Edit className="w-4 h-4" />
+                      </span>
+                      <span className="hidden md:inline text-blue-700 font-medium">Edit</span>
                     </button>
+
                     <button
                       onClick={() => setConfirming(p)}
-                      className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition font-medium"
+                      className="flex items-center gap-2"
+                      title="Delete Product"
                     >
-                      <Trash2 className="w-4 h-4" />
-                      <span className="hidden sm:inline">Delete</span>
+                      <span className="p-2.5 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition inline-flex items-center justify-center">
+                        <Trash2 className="w-4 h-4" />
+                      </span>
+                      <span className="hidden md:inline text-red-600 font-medium">Delete</span>
                     </button>
                   </div>
                 </div>
@@ -245,13 +324,15 @@ export default function ProductsPage() {
                           setEditing(p)
                           setShowForm(true)
                         }}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition font-medium text-sm"
+                        className="p-3 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition inline-flex items-center justify-center"
+                        title="Edit Product"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setConfirming(p)}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition font-medium text-sm"
+                        className="p-3 bg-red-50 text-red-600 rounded-full hover:bg-red-100 transition inline-flex items-center justify-center"
+                        title="Delete Product"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -267,7 +348,6 @@ export default function ProductsPage() {
           </div>
         )}
 
-        {/* Product Form Modal */}
         {showForm && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm z-50 animate-fadeIn">
             <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-8 relative max-h-[90vh] overflow-y-auto">
@@ -284,12 +364,12 @@ export default function ProductsPage() {
                 initial={editing}
                 onCancel={() => setShowForm(false)}
                 onSubmit={handleSubmitProduct}
+                loading={saving}
               />
             </div>
           </div>
         )}
 
-        {/* Delete Confirmation Modal */}
         {confirming && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm z-50 animate-fadeIn">
             <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
@@ -298,6 +378,7 @@ export default function ProductsPage() {
                 message={`Are you sure you want to delete "${confirming.name}"? This action cannot be undone.`}
                 onCancel={() => setConfirming(null)}
                 onConfirm={confirmDelete}
+                loading={deletingId === confirming.id}
               />
             </div>
           </div>

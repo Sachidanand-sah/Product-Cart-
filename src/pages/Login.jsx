@@ -18,12 +18,11 @@ export default function Login() {
     setError('')
     setLoading(true)
     try {
-      // Hardcoded credentials for testing
+      // Hardcoded credentials for demo purposes
       const VALID_USERNAME = 'DemoUser'
       const VALID_PASSWORD = 'Demo@123'
 
       if (username === VALID_USERNAME && password === VALID_PASSWORD) {
-        // Generate a mock token
         const mockToken = 'mock_token_' + Date.now()
         saveToken({ email: username, token: mockToken })
         setSuccess('Login successful! Redirecting...')
@@ -41,7 +40,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
-      {/* Enhanced Background with Animated Gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
@@ -50,7 +48,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Animated Background Pattern */}
       <div className="absolute inset-0 overflow-hidden">
         <svg className="absolute w-full h-full opacity-10" viewBox="0 0 400 400">
           <defs>
@@ -62,11 +59,8 @@ export default function Login() {
         </svg>
       </div>
 
-      {/* Login Card Container */}
       <div className="relative z-10 w-full max-w-md px-6">
         <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-8 md:p-10 transform transition-all duration-300 hover:shadow-3xl">
-          
-          {/* Header Section */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4 shadow-lg">
               <Lock className="w-8 h-8 text-white" />
@@ -74,15 +68,12 @@ export default function Login() {
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Welcome Back</h1>
             <p className="text-white/60 text-sm">Sign in to your account to continue</p>
           </div>
-
-          {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
               <p className="text-red-200 text-sm font-medium">{error}</p>
             </div>
           )}
 
-          {/* Success Message */}
           {success && (
             <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg flex items-center gap-2">
               <CheckCircle className="w-5 h-5 text-green-300 flex-shrink-0" />
@@ -90,9 +81,7 @@ export default function Login() {
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={submit} className="space-y-5">
-            {/* Username Field */}
             <div>
               <label className="block text-sm font-semibold text-white/80 mb-2">Username</label>
               <div className="relative">
@@ -108,7 +97,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Password Field */}
             <div>
               <label className="block text-sm font-semibold text-white/80 mb-2">Password</label>
               <div className="relative">
@@ -131,16 +119,13 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center text-white/60 hover:text-white/80 cursor-pointer transition">
                 <input type="checkbox" className="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500 cursor-pointer" />
                 <span className="ml-2">Remember me</span>
               </label>
-              <a href="#" className="text-blue-400 hover:text-blue-300 transition font-medium">Forgot password?</a>
             </div>
 
-            {/* Login Button */}
             <button
               type="submit"
               disabled={loading}
@@ -157,7 +142,6 @@ export default function Login() {
             </button>
           </form>
 
-          {/* Divider */}
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/20"></div>
@@ -167,7 +151,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Sign Up Link */}
           <p className="text-center text-white/60 text-sm">
             Don't have an account?{' '}
             <a href="#" className="text-blue-400 hover:text-blue-300 font-semibold transition">
@@ -176,7 +159,6 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Footer Info */}
         <div className="text-center mt-8 text-white/40 text-xs">
           <p>© 2025 ProductCartStore. All rights reserved.</p>
         </div>

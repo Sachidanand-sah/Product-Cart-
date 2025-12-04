@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Save, X } from 'lucide-react'
 
-export default function ProductForm({ initial, onCancel, onSubmit }) {
+export default function ProductForm({ initial, onCancel, onSubmit, loading = false }) {
   const [form, setForm] = useState({
     name: '',
     category: '',
@@ -19,7 +19,6 @@ export default function ProductForm({ initial, onCancel, onSubmit }) {
   function handleChange(e) {
     const { name, value } = e.target
     setForm({ ...form, [name]: value })
-    // Clear error for this field when user starts typing
     if (errors[name]) {
       setErrors({ ...errors, [name]: '' })
     }
@@ -47,7 +46,6 @@ export default function ProductForm({ initial, onCancel, onSubmit }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Product Name */}
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-2">Product Name *</label>
         <input
@@ -60,11 +58,11 @@ export default function ProductForm({ initial, onCancel, onSubmit }) {
               ? 'border-red-500 focus:ring-red-500 focus:border-transparent'
               : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
           }`}
+          disabled={loading}
         />
         {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
       </div>
 
-      {/* Category and Price Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-semibold text-gray-800 mb-2">Category *</label>
@@ -78,6 +76,7 @@ export default function ProductForm({ initial, onCancel, onSubmit }) {
                 ? 'border-red-500 focus:ring-red-500 focus:border-transparent'
                 : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
             }`}
+            disabled={loading}
           />
           {errors.category && <p className="text-red-500 text-sm mt-1">{errors.category}</p>}
         </div>
@@ -97,6 +96,7 @@ export default function ProductForm({ initial, onCancel, onSubmit }) {
                 ? 'border-red-500 focus:ring-red-500 focus:border-transparent'
                 : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
             }`}
+            disabled={loading}
           />
           {errors.price && <p className="text-red-500 text-sm mt-1">{errors.price}</p>}
         </div>
@@ -117,11 +117,10 @@ export default function ProductForm({ initial, onCancel, onSubmit }) {
               ? 'border-red-500 focus:ring-red-500 focus:border-transparent'
               : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
           }`}
+          disabled={loading}
         />
         {errors.stock && <p className="text-red-500 text-sm mt-1">{errors.stock}</p>}
       </div>
-
-      {/* Description */}
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-2">Description *</label>
         <textarea
@@ -135,11 +134,10 @@ export default function ProductForm({ initial, onCancel, onSubmit }) {
               ? 'border-red-500 focus:ring-red-500 focus:border-transparent'
               : 'border-gray-300 focus:ring-blue-500 focus:border-transparent'
           }`}
+          disabled={loading}
         />
         {errors.description && <p className="text-red-500 text-sm mt-1">{errors.description}</p>}
       </div>
-
-      {/* Image URL (Optional) */}
       <div>
         <label className="block text-sm font-semibold text-gray-800 mb-2">Image URL (Optional)</label>
         <input
@@ -148,25 +146,26 @@ export default function ProductForm({ initial, onCancel, onSubmit }) {
           value={form.image}
           onChange={handleChange}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+          disabled={loading}
         />
       </div>
-
-      {/* Action Buttons */}
-      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+        <div className="mt-4 flex justify-end gap-3 pt-4 border-t border-gray-200">
         <button
           type="button"
-          onClick={onCancel}
+          onClick={() => !loading && onCancel && onCancel()}
           className="flex items-center gap-2 px-6 py-2.5 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
+          disabled={loading}
         >
           <X className="w-4 h-4" />
           Cancel
         </button>
         <button
           type="submit"
-          className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
+          className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg disabled:opacity-60"
+          disabled={loading}
         >
           <Save className="w-4 h-4" />
-          {form.id ? 'Update' : 'Create'} Product
+          {loading ? (form.id ? 'Saving...' : 'Creating...') : (form.id ? 'Update' : 'Create')}
         </button>
       </div>
     </form>
