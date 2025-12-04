@@ -48,71 +48,62 @@ export default function ProductsPage() {
     })
   }
 
-  async function handleSubmitProduct(data) {
-    const payload = {
+  function mapToPayload(data) {
+    return {
       title: data.name,
       price: Number(data.price) || 0,
       description: data.description || '',
       image: data.image || 'https://i.pravatar.cc',
       category: data.category || 'general',
     }
-    if (data.id) {
-      const previous = products
-      setSaving(true)
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === data.id
-            ? {
-                ...p,
-                name: payload.title,
-                price: payload.price,
-                description: payload.description,
-                image: payload.image,
-                category: payload.category,
-              }
-            : p
-        )
-      )
-      setShowForm(false)
-      setEditing(null)
+  }
 
-      try {
-        await API.put(`/products/${data.id}`, payload)
-      } catch (err) {
-        setProducts(previous)
-        console.error('Update failed', err)
-        alert('Failed to update product')
-      } finally {
-        setSaving(false)
+  async function updateProduct(id, payload) {
+    const previous = products
+    setSaving(true)
+    setProducts((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, name: payload.title, price: payload.price, description: payload.description, image: payload.image, category: payload.category } : p))
+    )
+    try {
+      await API.put(`/products/${id}`, payload)
+    } catch (err) {
+      setProducts(previous)
+      console.error('Update failed', err)
+      alert('Failed to update product. Changes were reverted. See console for details.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function createProduct(payload) {
+    const tempId = `tmp-${Date.now()}`
+    const newProd = { id: tempId, name: payload.title, price: payload.price, description: payload.description, image: payload.image, category: payload.category, stock: 0 }
+    const previous = products
+    setProducts((prev) => [newProd, ...prev])
+    setSaving(true)
+    try {
+      const res = await API.post('/products', payload)
+      if (res && res.data && res.data.id) {
+        const serverId = res.data.id
+        setProducts((prev) => prev.map((p) => (p.id === tempId ? { ...p, id: serverId } : p)))
       }
+    } catch (err) {
+      setProducts(previous)
+      console.error('Create failed', err)
+      alert('Failed to create product. See console for details.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleSubmitProduct(data) {
+    const payload = mapToPayload(data)
+    setShowForm(false)
+    setEditing(null)
+    if (data.id) {
+      await updateProduct(data.id, payload)
     } else {
-      const tempId = `tmp-${Date.now()}`
-      const newProd = {
-        id: tempId,
-        name: payload.title,
-        price: payload.price,
-        description: payload.description,
-        image: payload.image,
-        category: payload.category,
-        stock: 0,
-      }
-      const previous = products
-      setProducts((prev) => [newProd, ...prev])
-      setShowForm(false)
-      setSaving(true)
-      try {
-        const res = await API.post('/products', payload)
-        if (res && res.data && res.data.id) {
-          const serverId = res.data.id
-          setProducts((prev) => prev.map((p) => (p.id === tempId ? { ...p, id: serverId } : p)))
-        }
-      } catch (err) {
-        setProducts(previous)
-        console.error('Create failed', err)
-        alert('Failed to create product')
-      } finally {
-        setSaving(false)
-      }
+      await createProduct(payload)
     }
   }
 

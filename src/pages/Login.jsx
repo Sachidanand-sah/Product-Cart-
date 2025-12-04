@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
-import API from '../api'
-import { saveToken } from '../auth'
 import { useNavigate } from 'react-router-dom'
-import { Lock, Mail, Eye, EyeOff, Loader, CheckCircle } from 'lucide-react'
+import { saveToken } from '../auth'
+import { Lock, Mail, Eye, EyeOff, Loader } from 'lucide-react'
 
 export default function Login() {
   const [username, setUsername] = useState('')
@@ -10,158 +9,97 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const nav = useNavigate()
+
+  // Demo credentials
+  const VALID_USERNAME = 'DemoUser'
+  const VALID_PASSWORD = 'Demo@123'
 
   async function submit(e) {
     e.preventDefault()
     setError('')
     setLoading(true)
     try {
-      // Hardcoded credentials for demo purposes
-      const VALID_USERNAME = 'DemoUser'
-      const VALID_PASSWORD = 'Demo@123'
-
       if (username === VALID_USERNAME && password === VALID_PASSWORD) {
-        const mockToken = 'mock_token_' + Date.now()
-        saveToken({ email: username, token: mockToken })
-        setSuccess('Login successful! Redirecting...')
-        setTimeout(() => nav('/'), 1000)
+        const token = `mock_token_${Date.now()}`
+        saveToken({ email: username, token })
+        nav('/')
       } else {
-        setError('Invalid credentials. Please try again.')
+        setError('Invalid username or password')
       }
     } catch (err) {
-      setError('Login failed. Please check your credentials.')
       console.error(err)
+      setError('An unexpected error occurred')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-2000"></div>
-          <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-pulse delay-4000"></div>
-        </div>
-      </div>
-
-      <div className="absolute inset-0 overflow-hidden">
-        <svg className="absolute w-full h-full opacity-10" viewBox="0 0 400 400">
-          <defs>
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" strokeWidth="0.5"/>
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
-        </svg>
-      </div>
-
-      <div className="relative z-10 w-full max-w-md px-6">
-        <div className="bg-white/10 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/20 p-8 md:p-10 transform transition-all duration-300 hover:shadow-3xl">
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-4 shadow-lg">
-              <Lock className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">Welcome Back</h1>
-            <p className="text-white/60 text-sm">Sign in to your account to continue</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-600 to-purple-600 p-6">
+      <div className="w-full max-w-md bg-white/6 backdrop-blur rounded-2xl p-8 border border-white/10 shadow-lg">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mb-3">
+            <Lock className="w-6 h-6 text-white" />
           </div>
-          {error && (
-            <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
-              <p className="text-red-200 text-sm font-medium">{error}</p>
-            </div>
-          )}
+          <h1 className="text-2xl font-bold text-white">Sign In</h1>
+          <p className="text-sm text-white/70">Use demo: <strong className="text-white">{VALID_USERNAME}</strong> / <strong className="text-white">{VALID_PASSWORD}</strong></p>
+        </div>
 
-          {success && (
-            <div className="mb-6 p-4 bg-green-500/20 border border-green-500/50 rounded-lg flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-300 flex-shrink-0" />
-              <p className="text-green-200 text-sm font-medium">{success}</p>
-            </div>
-          )}
+        {error && <div className="mb-4 text-sm text-red-300">{error}</div>}
 
-          <form onSubmit={submit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold text-white/80 mb-2">Username</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
-                  className="w-full pl-12 pr-4 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 backdrop-blur-sm"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-white/80 mb-2">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-white/40" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 backdrop-blur-sm"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/60 hover:text-white/80 transition"
-                >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center text-white/60 hover:text-white/80 cursor-pointer transition">
-                <input type="checkbox" className="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500 cursor-pointer" />
-                <span className="ml-2">Remember me</span>
-              </label>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:ring-offset-slate-900 transition duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <Loader className="w-5 h-5 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                'Sign In'
-              )}
-            </button>
-          </form>
-
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/20"></div>
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white/5 text-white/60">New to our platform?</span>
+        <form onSubmit={submit} className="space-y-4">
+          <div>
+            <label className="block text-sm text-white/80 mb-1">Username</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+              <input
+                className="w-full pl-10 pr-3 py-2 rounded-md bg-white/5 text-white placeholder-white/50 border border-white/10"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="DemoUser"
+                required
+              />
             </div>
           </div>
 
-          <p className="text-center text-white/60 text-sm">
-            Don't have an account?{' '}
-            <a href="#" className="text-blue-400 hover:text-blue-300 font-semibold transition">
-              Sign up here
-            </a>
-          </p>
-        </div>
+          <div>
+            <label className="block text-sm text-white/80 mb-1">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+              <input
+                className="w-full pl-10 pr-10 py-2 rounded-md bg-white/5 text-white placeholder-white/50 border border-white/10"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Demo@123"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-white/60"
+                aria-label="Toggle password visibility"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
 
-        <div className="text-center mt-8 text-white/40 text-xs">
-          <p>© 2025 ProductCartStore. All rights reserved.</p>
-        </div>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 rounded-md bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium disabled:opacity-60"
+          >
+            {loading ? (
+              <span className="inline-flex items-center gap-2"><Loader className="w-4 h-4 animate-spin" /> Signing in...</span>
+            ) : (
+              'Sign In'
+            )}
+          </button>
+        </form>
+
+        <p className="mt-6 text-center text-xs text-white/60">© 2025 ProductCartStore</p>
       </div>
     </div>
   )
